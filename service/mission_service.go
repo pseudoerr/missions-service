@@ -10,6 +10,9 @@ import (
 type MissionStore interface {
 	ListMissions(ctx context.Context) ([]models.Mission, error)
 	AddMission(ctx context.Context, m models.Mission) (models.Mission, error)
+	GetByID(ctx context.Context, id int) (models.Mission, error)
+	UpdateMission(ctx context.Context, m models.Mission) (models.Mission, error)
+	DeleteMission(ctx context.Context, id int) error
 }
 
 type InMemoryStore struct {
@@ -46,4 +49,44 @@ func (s *InMemoryStore) AddMission(ctx context.Context, m models.Mission) (model
 	s.nextID++
 	s.missions = append(s.missions, m)
 	return m, nil
+}
+
+func (s *MissionService) GetProfile(ctx context.Context) (models.Profile, error) {
+	missions, err := s.Store.ListMissions(ctx)
+	if err != nil {
+		return models.Profile{}, err
+	}
+	total := 0
+	for _, m := range missions {
+		total += m.Points
+
+	}
+	var level string
+	switch {
+	case total >= 1000:
+		level = "Expert"
+	case total >= 500:
+		level = "Advanced"
+	case total >= 200:
+		level = "Intermediate"
+	default:
+		level = "Beginner"
+	}
+
+	badges := []string{}
+	if total >= 200 {
+		badges = append(badges, "🏅200+ points")
+	}
+
+	if total >= 500 {
+		badges = append(badges, "🎖 500+ points")
+	}
+	if total >= 1000 {
+		badges = append(badges, "🏆 1000+ points")
+	}
+
+	return models.Profile{
+		TotalPoints:  total,
+		Level:        level,
+		Achievements: badges}, nil
 }

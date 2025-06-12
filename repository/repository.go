@@ -42,3 +42,24 @@ func (r *PostgresRepository) AddMission(ctx context.Context, m models.Mission) (
 
 	return m, err
 }
+
+func (r *PostgresRepository) GetByID(ctx context.Context, id int) (models.Mission, error) {
+	var m models.Mission
+	err := r.DB.QueryRowContext(ctx, "SELECT id, title, points FROM missions WHERE id = $1", id).
+		Scan(&m.ID, &m.Title, &m.Points)
+	return m, err
+}
+
+func (r *PostgresRepository) UpdateMission(ctx context.Context, m models.Mission) (models.Mission, error) {
+	_, err := r.DB.ExecContext(
+		ctx,
+		"UPDATE missions SET title = $1, points = $2 WHERE id = $3",
+		m.Title, m.Points, m.ID,
+	)
+	return m, err
+}
+
+func (r *PostgresRepository) DeleteMission(ctx context.Context, id int) error {
+	_, err := r.DB.Exec("DELETE FROM missions WHERE id = $1", id)
+	return err
+}
