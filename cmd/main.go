@@ -1,12 +1,17 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
-	"github.com/pseudoerr/mission-service/models"
-	"github.com/pseudoerr/mission-service/service"
+	"github.com/pseudoerr/mission-service/repository"
 	"log/slog"
 	"net/http"
 	"os"
+
+	_ "github.com/lib/pq"
+	"github.com/pseudoerr/mission-service/config"
+	"github.com/pseudoerr/mission-service/models"
+	"github.com/pseudoerr/mission-service/service"
 )
 
 type Handler struct {
@@ -16,9 +21,21 @@ type Handler struct {
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
-	store := service.NewInMemoryStore()
+	config.LoadEnv()
+	db, err := sql.Open("postgres", config.GetDatabaseURL())
+	if err != nil {
+		logger.Warn("failed to connect to db", "postgres", err)
+	}
+	defer db.Close()
+
+	if err := db.Ping(); err != nil {
+		logger.Warn("failed to ping db", "ping", err)
+	}
+	logger.Info("connected to psql!")
+
+	repo := repository.NewPostgresRepository(db)
 	svc := &service.MissionService{
-		Store:  store,
+		Store:  repo,
 		Logger: logger,
 	}
 
