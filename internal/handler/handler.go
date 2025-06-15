@@ -1,12 +1,16 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"github.com/gorilla/mux"
 	"github.com/pseudoerr/mission-service/models"
 	"github.com/pseudoerr/mission-service/service"
+	"log/slog"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type Handler struct {
@@ -14,11 +18,23 @@ type Handler struct {
 }
 
 func (h *Handler) GetMissions(w http.ResponseWriter, r *http.Request) {
-	missions, err := h.Service.Store.ListMissions(r.Context())
+	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+	defer cancel()
+	missions, err := h.Service.Store.ListMissions(ctx)
 	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			slog.Warn("Mission fetch timed out")
+			http.Error(w, "Request timeout", http.StatusGatewayTimeout)
+			return
+		}
 		http.Error(w, "Failed to list missions", http.StatusInternalServerError)
 		return
 	}
+
+	if missions == nil {
+		missions = []models.Mission{}
+	}
+
 	writeJSON(w, http.StatusOK, missions)
 }
 

@@ -2,15 +2,16 @@ package main
 
 import (
 	"database/sql"
-	"github.com/pseudoerr/mission-service/internal/handler"
-	"github.com/pseudoerr/mission-service/repository"
-	"log/slog"
-	"net/http"
-	"os"
-
 	_ "github.com/lib/pq"
 	"github.com/pseudoerr/mission-service/config"
+	"github.com/pseudoerr/mission-service/internal/handler"
+	"github.com/pseudoerr/mission-service/repository"
 	"github.com/pseudoerr/mission-service/service"
+	"log"
+	"log/slog"
+	"net/http"
+	_ "net/http/pprof"
+	"os"
 )
 
 func main() {
@@ -40,6 +41,13 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
+
+	go func() {
+		slog.Info("pprof available at :6060/debug/pprof")
+		log.Println(http.ListenAndServe(":6060", nil))
+	}()
+
 	logger.Info("starting http server on port 8080")
 	http.ListenAndServe(":"+port, router)
+
 }
