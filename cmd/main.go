@@ -2,16 +2,17 @@ package main
 
 import (
 	"database/sql"
-	_ "github.com/lib/pq"
-	"github.com/pseudoerr/mission-service/config"
-	"github.com/pseudoerr/mission-service/internal/handler"
-	"github.com/pseudoerr/mission-service/repository"
-	"github.com/pseudoerr/mission-service/service"
 	"log"
 	"log/slog"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
+
+	_ "github.com/lib/pq"
+	"github.com/pseudoerr/mission-service/config"
+	"github.com/pseudoerr/mission-service/internal/handler"
+	"github.com/pseudoerr/mission-service/repository"
+	"github.com/pseudoerr/mission-service/service"
 )
 
 func main() {

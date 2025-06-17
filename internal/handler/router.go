@@ -1,9 +1,11 @@
 package handler
 
 import (
-	"github.com/gorilla/mux"
 	"net/http"
 	"time"
+
+	"github.com/gorilla/mux"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func NewRouter(handler *Handler) http.Handler {
@@ -15,6 +17,7 @@ func NewRouter(handler *Handler) http.Handler {
 	r.HandleFunc("/missions/{id:[0-9]+}", handler.UpdateMission).Methods("PUT")
 	r.HandleFunc("/missions/{id:[0-9]+}", handler.DeleteMission).Methods("DELETE")
 	r.HandleFunc("/profile", handler.GetProfile).Methods("GET")
+	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
 	rl := NewRateLimiter(10, time.Minute)
 
